@@ -165,6 +165,10 @@ Motivo: segurança + DX. Evita 500 por entrada inválida, padroniza mensagens.
 
 Motivo: testes rápidos e confiáveis; regressões pegam cedo; o design fica orientado à testabilidade.
 
+PS.: Utilizei o Bogus somente para demonstrar que com entidades mais complexas é possível automatizar mocks e stubs. 
+O mesmo se aplica para a controller. Não há necessidade dela existir, para um aplicação específica dessa o BlazorServer e o MediatR cumprem bem o papel
+de controlador (sem violar o domínio).
+
 # Segurança e robustez
 
 - Sem over-posting: apenas DTOs saem do caso de uso (sem expor entidade).
@@ -185,26 +189,76 @@ Docker e Docker Compose
 
 # 1 - Subir Postgres e aplicar migrações
 
-Na pasta Database/:
+cd Database
+make postgres      # sobe o postgres e roda as migrações
+make up            # só sobe o postgres
+make migrate       # roda/força as migrações
+make status        # vê status
+make down          # derruba containers
+make clean         # derruba + remove volume
 
-make postgres          # sobe o container do Postgres e roda as migrações
-make logs              # (opcional) acompanha logs do Postgres
-make status            # (opcional) mostra containers relevantes
-make reset   		   # derruba e remove volumes (cuidado: apaga dados)
+# 2 - Configurar variáveis de ambiente do banco
 
-# Testar conexão (opcional):
+Na pasta Database/, crie .env (ou use o sample.env já pronto):
 
-make psql
--- dentro do psql:
-\dt public.*
+DB_USER=developer
+DB_PASS=umbler@!Ev4l
+DB_PASS_URLENC=umbler%40%21Ev4l   # URL-encoded
+DB_NAME=whoisDb
 
-# Rodar a aplicação
+# 2 - Configurar variáveis de ambiente do banco
 
-Na raiz do repositório (ou no projeto Web):
+Na pasta Database/, crie .env (ou use o sample.env já pronto):
 
-dotnet restore
-dotnet build
-dotnet run --project Umbler.WhoIs.WebApp
+DB_USER=developer
+DB_PASS=umbler@!Ev4l
+DB_PASS_URLENC=umbler%40%21Ev4l   # URL-encoded
+DB_NAME=whoisDb
+
+
+# 3 - Subir Postgres + rodar migrações
+
+- Na pasta Database/:
+	- make postgres        # sobe o Postgres e executa as migrações
+	# ou, se quiser separado:
+	- make up              # sobe só o Postgres
+	- make migrate         # roda/força as migrações
+
+- Comandos úteis:
+	- make status          # mostra status dos containers
+	- make down            # derruba os containers
+	- make clean           # derruba e remove volumes (reset do banco)
+
+# 4 - Conferir a conexão da aplicação
+
+No projeto Web (Blazor), verifique appsettings.json:
+
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=whoisDb;Username=developer;Password=umbler@!Ev4l"
+  }
+}
+
+# 5 - Rodar a aplicação
+
+- Na raiz da solução (onde está o .sln ou o projeto web):
+	- dotnet restore
+	- dotnet build
+	- dotnet run
+
+- A aplicação abrirá em algo como https://localhost:5xxx (ou http://localhost:5xxx).
+
+# 6 - Usar a tela
+
+- Acesse /counter (ex.: https://localhost:5xxx/counter).
+- Informe um domínio (ex.: ns254.umbler.com) e clique em Create.
+- Se já existir e o TTL ainda estiver válido, a aplicação retorna do cache; senão, resolve DNS/WHOIS e salva.
+- Validações e erros aparecem via UI (e também ficam nos logs).
+
+# 7 - Rodar testes
+
+- Na solução de testes:
+	- dotnet test
 
 # Fluxo de desenvolvimento
 
