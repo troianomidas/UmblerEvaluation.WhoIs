@@ -1,4 +1,3 @@
-# --- Paths / env-file ---
 MAKEFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 DB_DIR       := $(abspath $(MAKEFILE_DIR))
 ENV_FILE     := $(firstword $(wildcard $(DB_DIR)/.env) $(wildcard $(DB_DIR)/sample.env))
