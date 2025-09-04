@@ -1,0 +1,165 @@
+﻿@page "/counter"
+
+@using DnsClient
+@using FluentValidation
+@using MediatR
+@using Umbler.WhoIs.Application.UseCases.Domain.Create
+@using Whois.NET
+
+@inject IMediator Mediator
+@inject ILogger<Counter> Logger
+
+@rendermode InteractiveServer
+
+<h3>Umbler • WhoIs</h3>
+
+<div class="mb-2">
+    <input class="form-control" placeholder="ex.: ns254.umbler.com"
+           @bind="_model.DomainName"/>
+</div>
+
+<button class="btn btn-primary" @onclick="OnSubmit" disabled="@_busy">
+    @(_busy ? "Enviando..." : "Create")
+</button>
+
+@if (!string.IsNullOrWhiteSpace(_error))
+{
+    <div class="alert alert-danger mt-3">@_error</div>
+}
+
+@if (_result is not null)
+{
+    <div class="alert alert-success mt-3">
+        <div>
+            <b>Domain:</b> @_result.DomainName
+        </div>
+        <div>
+            <b>IP:</b> @_result.IpAddress
+        </div>
+        <div>
+            <b>HostedAt:</b> @_result.HostedAt
+        </div>
+    </div>
+}
+
+@code {
+    private readonly FormModel _model = new();
+    private CreateDomainCommandResponse? _result;
+    private string? _error;
+    private bool _busy;
+    
+    private async Task OnSubmit()
+    {
+        _error = null;
+        _result = null;
+
+        if (string.IsNullOrWhiteSpace(_model.DomainName))
+        {
+            _error = "Informe um domínio.";
+            return;
+        }
+
+        _busy = true;
+
+        try
+        {
+            // 1 - DNS (short timeout DnsClient options)
+            string ip = "";
+            int ttl = 0;
+
+            var dnsClient = new LookupClient(new LookupClientOptions
+            {
+                Timeout = TimeSpan.FromSeconds(3),
+                Retries = 1
+            });
+
+            try
+            {
+                var dns = await dnsClient.QueryAsync(_model.DomainName, QueryType.A);
+                var record = dns.Answers.ARecords().FirstOrDefault();
+                ip = record?.Address?.ToString() ?? "";
+                ttl = record?.TimeToLive ?? 0;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning(ex, "Falha no DNS para {Domain}", _model.DomainName);
+            }
+
+            // 2 - WHOIS (token will not be reused in db, diferent context)
+            using var whoisCts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+            string whoisRaw = "";
+            string hostedAt = "";
+
+            try
+            {
+                var wDomain = await WhoisClient.QueryAsync(
+                    _model.DomainName,
+                    new WhoisQueryOptions(),
+                    whoisCts.Token
+                );
+                whoisRaw = wDomain.Raw ?? "";
+            }
+            catch (OperationCanceledException)
+            {
+                Logger.LogWarning("WHOIS timeout (domínio) para {Domain}", _model.DomainName);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning(ex, "Falha WHOIS (domínio) para {Domain}", _model.DomainName);
+            }
+
+            if (!string.IsNullOrWhiteSpace(ip))
+            {
+                try
+                {
+                    var wIp = await WhoisClient.QueryAsync(
+                        ip,
+                        new WhoisQueryOptions(),
+                        whoisCts.Token
+                    );
+                    hostedAt = wIp.OrganizationName ?? "";
+                }
+                catch (OperationCanceledException)
+                {
+                    Logger.LogWarning("WHOIS timeout (IP) para {Ip}", ip);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogWarning(ex, "Falha WHOIS (IP) para {Ip}", ip);
+                }
+            }
+
+            // 3 - send command via MediatR (without whoisCts.Token!)
+            var cmd = new CreateDomainCommand(
+                DomainName: _model.DomainName!,
+                IpAddress: ip,
+                WhoIs: whoisRaw,
+                Ttl: ttl < 0 ? 0 : ttl,
+                HostedAt: hostedAt
+            );
+            
+            _result = await Mediator.Send(cmd);
+        }
+        catch (ValidationException vex)
+        {
+            _error = string.Join("; ", vex.Errors.Select(e => e.ErrorMessage));
+            Logger.LogWarning(vex, "Validação falhou");
+        }
+        catch (Exception ex)
+        {
+            _error = "Erro ao processar a requisição. Veja logs.";
+            Logger.LogError(ex, "Falha no OnSubmit");
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private sealed class FormModel
+    {
+        public string? DomainName { get; set; }
+    }
+
+}

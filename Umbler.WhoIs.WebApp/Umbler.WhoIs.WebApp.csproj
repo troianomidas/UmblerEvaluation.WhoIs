@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Umbler.WhoIs.Application\Umbler.WhoIs.Application.csproj" />
+      <ProjectReference Include="..\Umbler.WhoIs.Common\Umbler.WhoIs.Common.csproj" />
+      <ProjectReference Include="..\Umbler.WhoIs.ORM\Umbler.WhoIs.ORM.csproj" />
+      <ProjectReference Include="..\Umbler.WhoIs.UnitTests\Umbler.WhoIs.UnitTests.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="DnsClient" Version="1.8.0" />
+      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+      <PackageReference Include="WhoisClient.NET" Version="6.1.0" />
+    </ItemGroup>
+
+</Project>
