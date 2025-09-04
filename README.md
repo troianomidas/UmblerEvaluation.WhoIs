@@ -192,33 +192,22 @@ Docker e Docker Compose
 
 # 1 - Subir Postgres e aplicar migrações
 
-cd Database
-make postgres      # sobe o postgres e roda as migrações
-make up            # só sobe o postgres
-make migrate       # roda/força as migrações
-make status        # vê status
-make down          # derruba containers
-make clean         # derruba + remove volume
+- cd Database
+- make postgres      # sobe o postgres e roda as migrações
+- make up            # só sobe o postgres
+- make migrate       # roda/força as migrações
+- make status        # vê status
+- make down          # derruba containers
+- make clean         # derruba + remove volume
 
 # 2 - Configurar variáveis de ambiente do banco
 
 Na pasta Database/, crie .env (ou use o sample.env já pronto):
 
-DB_USER=developer
-\n
-DB_PASS=umbler@!Ev4l
-DB_PASS_URLENC=umbler%40%21Ev4l   # URL-encoded
-DB_NAME=whoisDb
-
-# 2 - Configurar variáveis de ambiente do banco
-
-Na pasta Database/, crie .env (ou use o sample.env já pronto):
-
-DB_USER=developer
-DB_PASS=umbler@!Ev4l
-DB_PASS_URLENC=umbler%40%21Ev4l   # URL-encoded
-DB_NAME=whoisDb
-
+- DB_USER=developer
+- DB_PASS=umbler@!Ev4l
+- DB_PASS_URLENC=umbler%40%21Ev4l   # URL-encoded
+- DB_NAME=whoisDb
 
 # 3 - Subir Postgres + rodar migrações
 
@@ -237,11 +226,8 @@ DB_NAME=whoisDb
 
 No projeto Web (Blazor), verifique appsettings.json:
 
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Port=5432;Database=whoisDb;Username=developer;Password=umbler@!Ev4l"
-  }
-}
+-   "ConnectionStrings": {
+-     "DefaultConnection": "Host=localhost;Port=5432;Database=whoisDb;Username=developer;Password=umbler@!Ev4l"
 
 # 5 - Rodar a aplicação
 
