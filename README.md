@@ -169,6 +169,9 @@ PS.: Utilizei o Bogus somente para demonstrar que com entidades mais complexas �
 O mesmo se aplica para a controller. Não há necessidade dela existir, para um aplicação específica dessa o BlazorServer e o MediatR cumprem bem o papel
 de controlador (sem violar o domínio).
 
+A aplicação inteira em si é uma bazuca para matar uma mosca. Mas como é um desafio técnico e fui orientado a fazer o mais completo possível,
+optei por fazer dessa forma.
+
 # Segurança e robustez
 
 - Sem over-posting: apenas DTOs saem do caso de uso (sem expor entidade).
@@ -202,6 +205,7 @@ make clean         # derruba + remove volume
 Na pasta Database/, crie .env (ou use o sample.env já pronto):
 
 DB_USER=developer
+\n
 DB_PASS=umbler@!Ev4l
 DB_PASS_URLENC=umbler%40%21Ev4l   # URL-encoded
 DB_NAME=whoisDb
