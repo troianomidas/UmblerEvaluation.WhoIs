@@ -1,0 +1,28 @@
+services:
+  postgres:
+    image: postgres:latest
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: "${DB_NAME}"
+      POSTGRES_USER: "${DB_USER}"
+      POSTGRES_PASSWORD: "${DB_PASS}"
+      PGDATA: /var/lib/postgresql/data/umbler
+    volumes:
+      - whoisdb:/var/lib/postgresql/data
+
+  migrate:
+    image: migrate/migrate:latest
+    depends_on:
+      - postgres
+    volumes:
+      - ./migrations/postgres:/migrations:ro
+    entrypoint: [
+      "sh","-c",
+      "migrate -path=/migrations -database 'postgresql://${DB_USER}:${DB_PASS_URLENC}@postgres:5432/${DB_NAME}?sslmode=disable' up"
+    ]
+
+volumes:
+  whoisdb:
+    driver: local
