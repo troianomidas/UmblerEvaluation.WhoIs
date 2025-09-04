@@ -51,10 +51,10 @@ public class DomainConfig : IEntityTypeConfiguration<Domain.Entities.Domain>
         builder.Property(t => t.UpdatedAt)
             .HasColumnName("updated_at")
             .HasColumnType("timestamptz");
-        
+
         builder.Property(t => t.CreatedAt)
             .HasColumnName("created_at")
-            .HasColumnType("timestampz")
+            .HasColumnType("timestamptz")
             .HasDefaultValueSql("now()")
             .ValueGeneratedOnAdd();
 
