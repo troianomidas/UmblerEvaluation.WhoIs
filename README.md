@@ -209,43 +209,31 @@ Na pasta Database/, crie .env (ou use o sample.env já pronto):
 - DB_PASS_URLENC=umbler%40%21Ev4l   # URL-encoded
 - DB_NAME=whoisDb
 
-# 3 - Subir Postgres + rodar migrações
-
-- Na pasta Database/:
-	- make postgres        # sobe o Postgres e executa as migrações
-	# ou, se quiser separado:
-	- make up              # sobe só o Postgres
-	- make migrate         # roda/força as migrações
-
-- Comandos úteis:
-	- make status          # mostra status dos containers
-	- make down            # derruba os containers
-	- make clean           # derruba e remove volumes (reset do banco)
-
-# 4 - Conferir a conexão da aplicação
+# 3 - Conferir a conexão da aplicação
 
 No projeto Web (Blazor), verifique appsettings.json:
 
 -   "ConnectionStrings": {
 -     "DefaultConnection": "Host=localhost;Port=5432;Database=whoisDb;Username=developer;Password=umbler@!Ev4l"
 
-# 5 - Rodar a aplicação
+# 4 - Rodar a aplicação
 
 - Na raiz da solução (onde está o .sln ou o projeto web):
+	- dotnet clean
 	- dotnet restore
 	- dotnet build
 	- dotnet run
 
 - A aplicação abrirá em algo como https://localhost:5xxx (ou http://localhost:5xxx).
 
-# 6 - Usar a tela
+# 5 - Usar a tela
 
 - Acesse /counter (ex.: https://localhost:5xxx/counter).
 - Informe um domínio (ex.: ns254.umbler.com) e clique em Create.
 - Se já existir e o TTL ainda estiver válido, a aplicação retorna do cache; senão, resolve DNS/WHOIS e salva.
 - Validações e erros aparecem via UI (e também ficam nos logs).
 
-# 7 - Rodar testes
+# 6 - Rodar testes
 
 - Na solução de testes:
 	- dotnet test
